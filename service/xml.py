@@ -2,10 +2,10 @@ import xmltodict
 import json
 import os
 
-def xml_to_json(bytes):
+def xml_to_json(bytes, xml_path):
     root_element = xmltodict.parse(bytes)
-    element = list(xml_iterator(os.environ.get('xml_path'),root_element))
-    return (json.dumps(element))
+    element = list(xml_iterator(xml_path,root_element))
+    return (element)
 
 def xml_iterator(key, dictionary):
     for k, v in dictionary.items():
@@ -18,11 +18,3 @@ def xml_iterator(key, dictionary):
             for d in v:
                 for result in xml_iterator(key, d):
                     yield result
-
-def json_to_xml(entities):
-    if not isinstance(entities, list):
-        entities = [entities]
-    for i in entities:
-        print (i)
-        xml = xmltodict.unparse(i, pretty=True)
-    return xml
