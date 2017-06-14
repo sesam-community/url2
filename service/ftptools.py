@@ -9,12 +9,6 @@ logger = None
 format_string = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 logger = logging.getLogger('url2-service')
 
-# Log to stdout
-stdout_handler = logging.StreamHandler()
-stdout_handler.setFormatter(logging.Formatter(format_string))
-logger.addHandler(stdout_handler)
-logger.setLevel(logging.DEBUG)
-
 def ftp_connect():
     try:
         ftp = ftplib.FTP()
@@ -31,50 +25,34 @@ def ftp_savefile(connection,path,stream):
                           io.BytesIO(xmltodict.unparse(json.loads(stream),
                             pretty=True, full_document=False).encode()))  # send the file
 
-def ftp_get_single_file(ftp, path):
+def ftp_get_file(ftp, path, args):
+    is_folder = False
+    login_directory =ftp.pwd()
     bio = io.BytesIO()
-    def handle_binary(more_data):
-        bio.write(more_data)
-
-    ftp.retrbinary("RETR " + path, callback=handle_binary)
-    return bio
-
-def ftp_input_bytes(args, ftp, path):
-    delete_after = args.get('delete_after')
-
-    bio = None
-    if args.get('filename') is None:
-        bio=ftp_glob(ftp,path, delete_after)
-    else:
-        bio=ftp_single_file(ftp, path)
-
-    return bio
-
-def ftp_glob(ftp,file_path, delete_after):
-    ftp.cwd(file_path) #changing directory
-    bio_list = []
-    bio = io.BytesIO()
-
     def handle_binary(more_data):
         bio.write(more_data)
     try:
-        files = ftp.nlst()
+        ftp.cwd(path)
+        is_folder=True
+        logger.info("Path provided is folder - switching to path %s", path)
+    except ftplib.error_perm:
+        logger.info("connecting to folder %s", path)
+    try:
+        if is_folder:
+            files = ftp.nlst()
+        else:
+            files =ftp.nlst(path)
     except ftplib.error_perm as resp:
         if str(resp) == "550 No files found":
             print("No files in this directory")
-        else:
-            raise
-
-    for filename in files:
-        logger.info("Fetching binary from path %s", filename)
-        ftp.retrbinary("RETR " + filename, callback=handle_binary)
-        bio.seek(0)  # Go back to the start
-        bio_list.append(bio)
-        bio = io.BytesIO() #new bytes IO
-
-    if delete_after == "true":
-        for filename in files:
-            ftp.delete(filename)
-
-    return bio_list
-
+    if len(files) > 1:
+        logger.error("Path %s resolves to more than one file", path)
+        return bio
+    else:
+        logger.info("Fetching binary from path %s", files[0])
+        ftp.retrbinary("RETR " + files[0], callback=handle_binary)
+        if args.get('delete_file') == "true":
+            logger.info("delete_file property is set to true - deleting file %s", files[0] )
+            ftp.delete(files[0])
+        ftp.cwd(login_directory)
+        return bio
