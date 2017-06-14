@@ -18,3 +18,6 @@ def xml_iterator(key, dictionary):
             for d in v:
                 for result in xml_iterator(key, d):
                     yield result
+
+def json_to_xml(stream):
+    return xmltodict.unparse(json.loads(stream), pretty=True, full_document=False).encode()

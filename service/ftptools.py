@@ -21,9 +21,7 @@ def ftp_connect():
 
 
 def ftp_savefile(connection,path,stream):
-    connection.storbinary('STOR ' + path,
-                          io.BytesIO(xmltodict.unparse(json.loads(stream),
-                            pretty=True, full_document=False).encode()))  # send the file
+    connection.storbinary('STOR ' + path, io.BytesIO(stream))  # send the file
 
 def ftp_get_file(ftp, path, args):
     is_folder = False

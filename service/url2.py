@@ -38,7 +38,8 @@ def post(path):
 def renderer(request_method, path, bytes):
     filetype = path.split(".")
     if filetype[-1].lower() == "xml":
-        protocol(request_method, path, bytes)
+        logger.info("converting incoming json to xml")
+        protocol(request_method, path, xml.json_to_xml(bytes))
     else:
         logger.log("No renderer found for filetype %s", filetype[-1])
 
