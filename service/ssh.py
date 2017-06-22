@@ -1,9 +1,13 @@
+import os
+
+from paramiko import SSHClient, AutoAddPolicy
+from scp import SCPClient
 import logging
 
-logger  = logging.getLogger('sshfs')
+logger = logging.getLogger('ssh')
 
 
-class Ftp:
+class Ssh:
     def __init__(self):
         pass
 
@@ -23,12 +27,18 @@ class SshSession:
         ssh_savefile(self._connection, path, stream=stream)
 
     def close(self):
-        self._connection.quit()
+        self._connection.close()
         logger.info("Closed connection")
 
 
 def ssh_connect():
-    pass
+    client = SSHClient()
+    client.load_system_host_keys()
+    client.set_missing_host_key_policy(AutoAddPolicy())
+    client.connect(hostname=os.environ.get('hostname'),
+                   username=os.environ.get('username'),
+                   password=os.environ.get('password'))
+    return client
 
 
 def ssh_savefile(connection, path, stream):
@@ -36,8 +46,5 @@ def ssh_savefile(connection, path, stream):
 
 
 def ssh_get_file(connection, path, args):
-    pass
-
-
-def ssh_savefile(connection, path, stream):
-    pass
+    stdin, stdout, stderr = connection.exec_command('cat ' + path)
+    return stdout
