@@ -1,7 +1,6 @@
 import os
 
 from paramiko import SSHClient, AutoAddPolicy
-from scp import SCPClient
 import logging
 
 logger = logging.getLogger('ssh')
