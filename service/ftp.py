@@ -33,7 +33,7 @@ class FtpSession:
 def ftp_connect():
     try:
         ftp = ftplib.FTP()
-        ftp.connect(host=os.environ.get('ftp_server'), port=int(os.environ.get('ftp_port')))
+        ftp.connect(host=os.environ.get('hostname'), port=int(os.environ.get('ftp_port')))
         logger.info("Logging into %s", os.environ.get('ftp_server'))
         ftp.login(os.environ.get('username'), os.environ.get('password'))
         return ftp
