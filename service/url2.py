@@ -3,8 +3,8 @@ import json
 from flask import Flask, request, Response
 import os
 import logging
-from .ftp import Ftp
-from .xml import XmlParser, XmlRenderer
+from service.ftp import Ftp
+from service.xml_tools import XmlParser, XmlRenderer
 app = Flask(__name__)
 
 logger = None
