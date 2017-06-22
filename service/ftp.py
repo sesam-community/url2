@@ -11,7 +11,7 @@ class Ftp:
         pass
 
     def open_session(self):
-        return FtpSession(self)
+        return FtpSession()
 
 
 class FtpSession:
@@ -78,4 +78,5 @@ def ftp_get_file(ftp, path, args):
         ftp.delete(files[0])
     # TODO do we need this?
     ftp.cwd(login_directory)
+    bio.seek(0)
     return bio
