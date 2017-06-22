@@ -22,7 +22,7 @@ def xml_to_json(bytes, xml_path):
     root_element = xmltodict.parse(bytes)
     if xml_path is not None:
         return list(xml_iterator(xml_path,root_element))
-    return (root_element)
+    return [root_element]
 
 
 def xml_iterator(key, dictionary):
