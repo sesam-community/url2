@@ -3,8 +3,8 @@ import json
 from flask import Flask, request, Response
 import os
 import logging
-from service import xml, ftptools
-
+from .ftp import Ftp
+from .xml import XmlParser, XmlRenderer
 app = Flask(__name__)
 
 logger = None
@@ -17,57 +17,58 @@ stdout_handler.setFormatter(logging.Formatter(format_string))
 logger.addHandler(stdout_handler)
 logger.setLevel(logging.DEBUG)
 
-#FTP GET ROUTE
+
+def create_protocol():
+    protocol = os.environ.get("protocol")
+    if protocol.lower() == "ftp":
+        return Ftp()
+    else:
+        raise Exception("Unknown protocol: '%s'" % protocol)
+
+
+def create_parser(args, path):
+    filetype = path.split(".")[-1]
+    #TODO Could also use mimetype on incoming stream
+    parser = args.get('type', filetype)
+
+    if parser.lower() == "xml":
+        return XmlParser(args)
+    else:
+        raise Exception("Unknown parser: '%s" % parser)
+
+
+def create_renderer(args, path):
+    filetype = path.split(".")[-1]
+
+    renderer = args.get('type', filetype)
+    if renderer.lower() == "xml":
+        return XmlRenderer(args)
+    else:
+        raise Exception("Unknown parser: '%s" % renderer)
+
+protocol = create_protocol()
+
+
 @app.route("/<path:path>", methods=["GET"])
 def get(path):
-    request_method = request.method
-    json_obj = protocol(request_method, path, args=request.args)
-    if json_obj == "null":
-        return Response(response=None, status=400, mimetype='application/json')
-    else:
-        return Response(response=json_obj, mimetype='application/json')
+    parser = create_parser(request.args, path)
+    session = protocol.open_session()
+    stream = session.read(path, args=request.args)
+    dumps = json.dumps(parser.parse(stream))
+    session.close()
+    return Response(response=dumps, mimetype='application/json')
 
-#FTP POST ROUTE
+
 @app.route('/<path:path>', methods=["POST"])
 def post(path):
-    request_method = request.method
-    renderer(request_method,path,request.stream.read())
+
+    renderer = create_renderer(request.args, path)
+    stream = request.stream
+    session = protocol.open_session()
+    session.write(path, renderer.render(stream), args=request.args)
+    session.close()
 
     return Response(response="Great Success!", mimetype='application/json')
-
-def renderer(request_method, path, bytes):
-    filetype = path.split(".")
-    if filetype[-1].lower() == "xml":
-        logger.info("converting incoming json to xml")
-        protocol(request_method, path, xml.json_to_xml(bytes))
-    else:
-        logger.log("No renderer found for filetype %s", filetype[-1])
-
-#TODO: add more protocols
-def protocol(request_method, path, bytes=None, args=None):
-
-    if request_method == "POST":
-        if os.environ.get("protocol") == "ftp":
-            connection =ftptools.ftp_connect()
-            ftptools.ftp_savefile(connection, path, bytes)
-            connection.quit()
-    elif request_method == "GET":
-        if os.environ.get('protocol') == "ftp":
-            connection = ftptools.ftp_connect()
-            return json.dumps(parser(ftptools.ftp_get_file(connection, path, args), args, path))
-            connection.quit()
-        return
-
-#TODO: add more parsers
-def parser(bio, args,path):
-    parser = args.get("parser")
-
-    bio.seek(0)
-    if parser == "xml":
-        logger.info("Filetype is %s - using %s parser", parser, parser)
-        return xml.xml_to_json(bio, args.get("xml_path"))
-    else:
-        logger.info("Filetype %s not supported", parser)
 
 
 if __name__ == '__main__':
