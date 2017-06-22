@@ -4,6 +4,7 @@ from flask import Flask, request, Response
 import os
 import logging
 from service.ftp import Ftp
+from service.ssh import Ssh
 from service.xml_tools import XmlParser, XmlRenderer
 app = Flask(__name__)
 
@@ -22,6 +23,8 @@ def create_protocol():
     protocol = os.environ.get("protocol")
     if protocol.lower() == "ftp":
         return Ftp()
+    if protocol.lower() == "ssh":
+        return Ssh()
     else:
         raise Exception("Unknown protocol: '%s'" % protocol)
 
