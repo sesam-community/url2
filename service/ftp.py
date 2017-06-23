@@ -79,4 +79,4 @@ def ftp_get_file(ftp, path, args):
     # TODO do we need this?
     ftp.cwd(login_directory)
     bio.seek(0)
-    return bio
+    return [bio]
