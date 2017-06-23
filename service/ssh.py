@@ -45,5 +45,19 @@ def ssh_savefile(connection, path, stream):
 
 
 def ssh_get_file(connection, path, args):
-    stdin, stdout, stderr = connection.exec_command('cat ' + path)
-    return stdout
+    streams = []
+    filenames = []
+
+    filetype = path.split(".")[-1]
+    stdin, stdout, stderr = connection.exec_command('ls ' + path)
+    for out in stdout.readlines():
+        filenames.append(out)
+    for name in filenames:
+        name = name.replace('\n', '')
+        if name.split(".")[-1] == args.get('type', filetype).lower():
+            if len(filenames)>1:
+                stdin, stdout, stderr = connection.exec_command('cat ' + path + str(name))
+            else :
+                stdin, stdout, stderr = connection.exec_command('cat ' + path)
+            streams.append(stdout)
+    return streams
