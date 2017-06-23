@@ -1,13 +1,37 @@
 import xmltodict
 import json
-
+from service import dotdictify
+import attrdict
 
 class XmlParser:
     def __init__(self, args):
         self._xml_path = args.get("xml_path")
+        self._updated_path = args.get("updated_path")
+        self._since = args.get("since")
 
     def parse(self, stream):
-        return xml_to_json(bytes=stream, xml_path=self._xml_path)
+        return self._xml_to_json(bytes=stream)
+
+    def _xml_to_json(self, bytes):
+        root_element = xmltodict.parse(bytes)
+
+        if self._xml_path is not None:
+            l = list(dotdictify.dotdictify(root_element).get(self._xml_path))
+        else:
+            l = [root_element]
+        if self._updated_path is not None:
+            for entity in l:
+                b = dotdictify.dotdictify(entity)
+                entity["_updated"] = b.get(self._updated_path)
+        if self._since is not None:
+            return list(filter(l, self._since))
+        return l
+
+
+def filter(l, since):
+    for e in l:
+        if e.get("_updated") > since:
+            yield e
 
 
 class XmlRenderer:
@@ -16,26 +40,6 @@ class XmlRenderer:
 
     def render(self, stream):
         return json_to_xml(stream)
-
-
-def xml_to_json(bytes, xml_path):
-    root_element = xmltodict.parse(bytes)
-    if xml_path is not None:
-        return list(xml_iterator(xml_path,root_element))
-    return [root_element]
-
-
-def xml_iterator(key, dictionary):
-    for k, v in dictionary.items():
-        if k == key:
-            yield v
-        elif isinstance(v, dict):
-            for result in xml_iterator(key, v):
-                yield result
-        elif isinstance(v, list):
-            for d in v:
-                for result in xml_iterator(key, d):
-                    yield result
 
 
 def json_to_xml(stream):
