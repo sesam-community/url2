@@ -56,9 +56,12 @@ protocol = create_protocol()
 def get(path):
     parser = create_parser(request.args, path)
     session = protocol.open_session()
-    stream = session.read(path, args=request.args)
-    dumps = json.dumps(parser.parse(stream))
+    streams = session.read(path, args=request.args)
+    l = []
+    for stream in streams:
+        l = l + parser.parse(stream)
     session.close()
+    dumps = json.dumps(l)
     return Response(response=dumps, mimetype='application/json')
 
 
