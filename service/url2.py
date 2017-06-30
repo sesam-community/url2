@@ -2,25 +2,18 @@ import json
 
 from flask import Flask, request, Response
 import os
-import logging
+from service import logger
 from service.ftp import Ftp
 from service.ssh import Ssh
 from service.xml_tools import XmlParser, XmlRenderer
 app = Flask(__name__)
 
-logger = None
-format_string = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-logger = logging.getLogger('url2-service')
-
-# Log to stdout
-stdout_handler = logging.StreamHandler()
-stdout_handler.setFormatter(logging.Formatter(format_string))
-logger.addHandler(stdout_handler)
-logger.setLevel(logging.DEBUG)
+logger = logger.Logger('url2-service')
 
 
 def create_protocol():
     protocol = os.environ.get("protocol")
+    logger.info("Using protocol: %s" % protocol)
     if protocol.lower() == "ftp":
         return Ftp()
     if protocol.lower() == "ssh":
@@ -33,7 +26,7 @@ def create_parser(args, path):
     filetype = path.split(".")[-1]
     #TODO Could also use mimetype on incoming stream
     parser = args.get('type', filetype)
-
+    logger.info("Using parser: %s" % parser)
     if parser.lower() == "xml":
         return XmlParser(args)
     else:
