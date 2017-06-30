@@ -1,9 +1,9 @@
 import os
-
+from service import logger
 from paramiko import SSHClient, AutoAddPolicy
 import logging
 
-logger = logging.getLogger('ssh')
+logger = logger.Logger("ssh")
 
 
 class Ssh:
@@ -16,35 +16,36 @@ class Ssh:
 
 class SshSession:
     def __init__(self):
-        self._connection = ssh_connect()
+        self._connection = connect()
         logger.info("Opened connection")
 
     def read(self, path, args):
-        return ssh_get_file(self._connection, path, args=args)
+        return get_files(self._connection, path, args=args)
 
     def write(self, path, stream, args):
-        ssh_savefile(self._connection, path, stream=stream)
+        savefile(self._connection, path, stream=stream)
 
     def close(self):
         self._connection.close()
         logger.info("Closed connection")
 
 
-def ssh_connect():
+def connect():
     client = SSHClient()
     client.load_system_host_keys()
     client.set_missing_host_key_policy(AutoAddPolicy())
+    logger.info("Logging into %s" % os.environ.get('hostname'))
     client.connect(hostname=os.environ.get('hostname'),
                    username=os.environ.get('username'),
                    password=os.environ.get('password'))
     return client
 
 
-def ssh_savefile(connection, path, stream):
-    pass
+def savefile(connection, path, stream):
+    connection.exec_command('echo ' + str(stream) + ' > ' + path + '\n')
 
 
-def ssh_get_file(connection, path, args):
+def get_files(connection, path, args):
     streams = []
     filenames = []
 
@@ -56,8 +57,10 @@ def ssh_get_file(connection, path, args):
         name = name.replace('\n', '')
         if name.split(".")[-1] == args.get('type', filetype).lower():
             if len(filenames)>1:
+                logger.info("Found file: %s" % name)
                 stdin, stdout, stderr = connection.exec_command('cat ' + path + str(name))
             else :
+                logger.info("Found file: %s" % path)
                 stdin, stdout, stderr = connection.exec_command('cat ' + path)
             streams.append(stdout)
     return streams
