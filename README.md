@@ -3,8 +3,16 @@
 
 A new url microservice that for now supports:
 
-    FTP
+    FTP,
+    SSH
     [GET] [POST]
+
+of types:
+
+    XML
+
+You can use it to fetch single or multiple files from a path:
+It also supports saving files to a specific path.
 
 ##### Example System Config
 ```
@@ -13,19 +21,21 @@ A new url microservice that for now supports:
   "type": "system:microservice",
   "docker": {
     "environment": {
-      #FTP [GET xml-to-json][POST json-to-xml]
-      "protocol:"ftp",
-      "ftp_server": "some.ftp.server",
-      "ftp_port": 21,
+      "protocol:"*protocol*",
+      "hostname": "*hostname*",
       "username": "some_username",
       "password": "some_password"
-      #Other Systems coming soon
+      #optional
+      "ftp_port": 21,
     },
     "image": "sesamcommunity/url2:latest",
     "port": 5000
   }
 }
 ```
+
+The microservice supports ssh protocol and ftp protocol for now.
+If ftp is used you need to add ftp_port - it defaults to 21 if not defined.
 
 ##### FTP [GET] pipe config
 ```
@@ -35,9 +45,9 @@ A new url microservice that for now supports:
   "source": {
     "type": "json",
     "system": "url2-xml-service",
-    "url": "/path/to/xml/file.xml?parser=xml&xml_path=some_path&delete_file=false",
+    "url": "/path/to/xml/file.xml?xml_path=customerRecords.customerRecord&updated_path=system.customerChangeDateTime&since=2001-12-17T09:30:47%2B02:00&delete_file=false",
     "or": "",
-    "url": "/path/to/folder/?parser=xml&xml_path=some_path&delete_file=true"
+    "url": "/path/to/folder/?type=xml&xml_path=customerRecords.customerRecord&updated_path=system.customerChangeDateTime&since=2001-12-17T09:30:47%2B02:00&delete_file=true"
   },
   "transform": {
     "type": "dtl",
@@ -50,6 +60,7 @@ A new url microservice that for now supports:
   }
 }
 ```
+It supports updated path if it exists, if not; remove updated_path and since from url
 
 ##### RETURNED example entity
 ```
@@ -82,4 +93,4 @@ A new url microservice that for now supports:
 }
 
 ```
-will convert your received json and convert it to xml for example.
+will convert the sent json to xml (for now) and save it to a specific path - this example pipe config saves to  "/path/to/xml/file.xml"
