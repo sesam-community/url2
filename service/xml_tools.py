@@ -1,7 +1,9 @@
 import xmltodict
 import json
 from service import dotdictify
-import attrdict
+from service import logger
+
+logger = logger.Logger('xml')
 
 class XmlParser:
     def __init__(self, args):
@@ -24,6 +26,7 @@ class XmlParser:
                 b = dotdictify.dotdictify(entity)
                 entity["_updated"] = b.get(self._updated_path)
         if self._since is not None:
+            logger.info("Fetching data since: %s" % self._since)
             return list(filter(l, self._since))
         return l
 
@@ -43,4 +46,5 @@ class XmlRenderer:
 
 
 def json_to_xml(stream):
-    return xmltodict.unparse(json.loads(stream), pretty=True, full_document=False).encode()
+    logger.info("converting XML to json")
+    return xmltodict.unparse(json.load(stream), pretty=True, full_document=False).encode()
