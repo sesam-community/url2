@@ -1,9 +1,9 @@
 import ftplib
 import os
-import logging
+from service import logger
 import io
 
-logger = logging.getLogger('ftp')
+logger = logger.Logger("ftp")
 
 
 class Ftp:
@@ -16,38 +16,40 @@ class Ftp:
 
 class FtpSession:
     def __init__(self):
-        self._connection = ftp_connect()
+        self._connection = connect()
         logger.info("Opened connection")
 
     def read(self, path, args):
-        return ftp_get_file(self._connection, path, args=args)
+        return get_files(self._connection, path, args=args)
 
     def write(self, path, stream, args):
-        ftp_savefile(self._connection, path, stream=stream)
+        savefile(self._connection, path, stream=stream)
 
     def close(self):
         self._connection.quit()
         logger.info("Closed connection")
 
 
-def ftp_connect():
+def connect():
     try:
         ftp = ftplib.FTP()
-        ftp.connect(host=os.environ.get('hostname'), port=int(os.environ.get('ftp_port')))
-        logger.info("Logging into %s", os.environ.get('ftp_server'))
+        ftp.connect(host=os.environ.get
+        ('hostname'), port=int(os.environ.get('ftp_port', "21")))
+        logger.info("Logging into %s" % os.environ.get('hostname'))
         ftp.login(os.environ.get('username'), os.environ.get('password'))
         return ftp
     except ftplib.all_errors as e:
         logger.info('Unable to connect!,%s' % e)
 
 
-def ftp_savefile(connection,path,stream):
+def savefile(connection, path, stream):
     connection.storbinary('STOR ' + path, io.BytesIO(stream))  # send the file
 
 
-def ftp_get_file(ftp, path, args):
+def get_files(ftp, path, args):
     is_folder = False
     login_directory =ftp.pwd()
+    bio_list = []
     bio = io.BytesIO()
 
     def handle_binary(more_data):
@@ -68,15 +70,15 @@ def ftp_get_file(ftp, path, args):
         if str(resp) == "550 No files found":
             raise FileNotFoundError("No files in this directory")
         raise resp
-    if len(files) > 1:
-        raise FileNotFoundError("Path %s resolves to more than one file", path)
-
-    logger.info("Fetching binary from path %s", files[0])
-    ftp.retrbinary("RETR " + files[0], callback=handle_binary)
-    if args.get('delete_file') == "true":
-        logger.info("delete_file property is set to true - deleting file %s", files[0] )
-        ftp.delete(files[0])
+    for file in files:
+        logger.info("Fetching binary from path %s", file)
+        ftp.retrbinary("RETR " + file, callback=handle_binary)
+        if args.get('delete_file') == "true":
+            logger.info("delete_file property is set to true - deleting file %s", file )
+            ftp.delete(file)
+        bio.seek(0)
+        bio_list.append(bio)
+        bio = io.BytesIO()
     # TODO do we need this?
     ftp.cwd(login_directory)
-    bio.seek(0)
-    return [bio]
+    return bio_list
