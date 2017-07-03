@@ -5,6 +5,8 @@ import os
 from service import logger
 from service.ftp import Ftp
 from service.ssh import Ssh
+from service.json_parser import Json
+from service.json_tools import JsonParser
 from service.xml_tools import XmlParser, XmlRenderer
 app = Flask(__name__)
 
@@ -16,8 +18,10 @@ def create_protocol():
     logger.info("Using protocol: %s" % protocol)
     if protocol.lower() == "ftp":
         return Ftp()
-    if protocol.lower() == "ssh":
+    elif protocol.lower() == "ssh":
         return Ssh()
+    elif protocol.lower() == "json":
+        return Json()
     else:
         raise Exception("Unknown protocol: '%s'" % protocol)
 
@@ -29,6 +33,8 @@ def create_parser(args, path):
     logger.info("Using parser: %s" % parser)
     if parser.lower() == "xml":
         return XmlParser(args)
+    elif parser.lower() == "json":
+        return JsonParser(args)
     else:
         raise Exception("Unknown parser: '%s" % parser)
 
@@ -40,7 +46,7 @@ def create_renderer(args, path):
     if renderer.lower() == "xml":
         return XmlRenderer(args)
     else:
-        raise Exception("Unknown parser: '%s" % renderer)
+        raise Exception("Unknown renderer: '%s" % renderer)
 
 protocol = create_protocol()
 
