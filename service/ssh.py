@@ -1,7 +1,6 @@
 import os
-from service import logger
+import logger
 from paramiko import SSHClient, AutoAddPolicy
-import logging
 
 logger = logger.Logger("ssh")
 

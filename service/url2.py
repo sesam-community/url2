@@ -2,12 +2,12 @@ import json
 
 from flask import Flask, request, Response
 import os
-from service import logger
-from service.ftp import Ftp
-from service.ssh import Ssh
-from service.json_parser import Json
-from service.json_tools import JsonParser
-from service.xml_tools import XmlParser, XmlRenderer
+import logger
+from ftp import Ftp
+from ssh import Ssh
+from json_parser import Json
+from json_tools import JsonParser
+from xml_tools import XmlParser, XmlRenderer
 app = Flask(__name__)
 
 logger = logger.Logger('url2-service')
@@ -77,4 +77,4 @@ def post(path):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=os.environ.get('port',5000))
+    app.run(debug=True, host='0.0.0.0', port=os.environ.get('port',5003))

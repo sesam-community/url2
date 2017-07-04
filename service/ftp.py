@@ -1,6 +1,6 @@
 import ftplib
 import os
-from service import logger
+import logger
 import io
 
 logger = logger.Logger("ftp")

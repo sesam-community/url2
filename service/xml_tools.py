@@ -1,7 +1,7 @@
 import xmltodict
 import json
-from service import dotdictify
-from service import logger
+from dotdictify import Dotdictify
+import logger
 
 logger = logger.Logger('xml')
 
@@ -18,12 +18,12 @@ class XmlParser:
         root_element = xmltodict.parse(bytes)
 
         if self._xml_path is not None:
-            l = list(dotdictify.dotdictify(root_element).get(self._xml_path))
+            l = list(Dotdictify(root_element).get(self._xml_path))
         else:
             l = [root_element]
         if self._updated_path is not None:
             for entity in l:
-                b = dotdictify.dotdictify(entity)
+                b = Dotdictify(entity)
                 entity["_updated"] = b.get(self._updated_path)
         if self._since is not None:
             logger.info("Fetching data since: %s" % self._since)

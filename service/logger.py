@@ -1,6 +1,4 @@
 import logging
-import sys
-import os
 
 def Logger(logger_name):
     format_string = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'

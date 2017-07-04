@@ -4,7 +4,7 @@
 #   --added `get()` method
 #   --added `if not dict.__contains__...` to `__contains__()`
 #   --can now accept None as key
-class dotdictify(dict):
+class Dotdictify(dict):
     def __init__(self, value=None):
         if value is None:
             pass
@@ -17,13 +17,13 @@ class dotdictify(dict):
     def __setitem__(self, key, value):
         if key is not None and '.' in key:
             myKey, restOfKey = key.split('.', 1)
-            target = self.setdefault(myKey, dotdictify())
-            if not isinstance(target, dotdictify):
+            target = self.setdefault(myKey, Dotdictify())
+            if not isinstance(target, Dotdictify):
                 raise KeyError('cannot set "%s" in "%s" (%s)' % (restOfKey, myKey, repr(target)))
             target[restOfKey] = value
         else:
-            if isinstance(value, dict) and not isinstance(value, dotdictify):
-                value = dotdictify(value)
+            if isinstance(value, dict) and not isinstance(value, Dotdictify):
+                value = Dotdictify(value)
             dict.__setitem__(self, key, value)
 
     def __getitem__(self, key):
@@ -31,7 +31,7 @@ class dotdictify(dict):
             return dict.__getitem__(self, key)
         myKey, restOfKey = key.split('.', 1)
         target = dict.__getitem__(self, myKey)
-        if not isinstance(target, dotdictify):
+        if not isinstance(target, Dotdictify):
             raise KeyError('cannot get "%s" in "%s" (%s)' % (restOfKey, myKey, repr(target)))
         return target[restOfKey]
 
@@ -42,7 +42,7 @@ class dotdictify(dict):
         if not dict.__contains__(self, myKey):
             return False
         target = dict.__getitem__(self, myKey)
-        if not isinstance(target, dotdictify):
+        if not isinstance(target, Dotdictify):
             return False
         return restOfKey in target
 
@@ -52,8 +52,8 @@ class dotdictify(dict):
         return self[key]
 
     def get(self, k, d=None):
-        if dotdictify.__contains__(self, k):
-            return dotdictify.__getitem__(self, k)
+        if Dotdictify.__contains__(self, k):
+            return Dotdictify.__getitem__(self, k)
         return d
 
     __setattr__ = __setitem__

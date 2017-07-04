@@ -1,8 +1,8 @@
 import os
-from service import logger
+import logger
 import json
 import requests
-from service.dotdictify import dotdictify
+from dotdictify import Dotdictify
 
 logger = logger.Logger("json")
 
@@ -52,7 +52,7 @@ def get(connection, path, args):
         path = path.replace("page_size", os.environ.get('page_size'))
         path = path.replace("page_number", str(page_number))
         url = os.environ.get('hostname') + path
-        result = dotdictify(json.loads(requests.get(url, headers=headers).text))
+        result = Dotdictify(json.loads(requests.get(url, headers=headers).text))
         streams.append(result)
 
         if args.get('total_pages_path') is not None:

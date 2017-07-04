@@ -1,13 +1,14 @@
 FROM python:3-alpine
 MAINTAINER Ashkan Vahidishams "ashkan.vahidishams@sesam.io"
-COPY ./service /service
 
 RUN apk update
 RUN apk add openssl-dev libffi-dev musl-dev gcc make
 
 RUN pip install --upgrade pip
 
+COPY ./service/requirements.txt /service/requirements.txt
 RUN pip install -r /service/requirements.txt
+COPY ./service /service
 
 EXPOSE 5000/tcp
 
