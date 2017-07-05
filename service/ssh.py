@@ -41,7 +41,7 @@ def connect():
 
 
 def savefile(connection, path, stream):
-    connection.exec_command('echo ' + str(stream) + ' > ' + path + '\n')
+    connection.exec_command('echo ' + str(stream) + ' >> ' + path + '\n')
 
 
 def get_files(connection, path, args):

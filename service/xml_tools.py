@@ -47,4 +47,4 @@ class XmlRenderer:
 
 def json_to_xml(stream):
     logger.info("converting XML to json")
-    return xmltodict.unparse(json.load(stream), pretty=True, full_document=False).encode()
+    return xmltodict.unparse(json.load(stream)[0], pretty=True, full_document=False).encode()
