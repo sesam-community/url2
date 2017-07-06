@@ -41,7 +41,12 @@ def connect():
 
 
 def savefile(connection, path, stream):
-    connection.exec_command('echo ' + str(stream) + ' >> ' + path + '\n')
+    dir = path.split('/')
+    p = ""
+    for element in dir:
+        if not element == dir[-1]:
+            p = p + element + "/"
+    connection.exec_command('if [ -f '  + path + ' ]; then echo \"' + stream.decode() + '\" >> ' + path + ' ; else mkdir -p ' + p + ' ; echo \"'+ stream.decode() + '\" >> ' + path + ' ; fi')
 
 
 def get_files(connection, path, args):
