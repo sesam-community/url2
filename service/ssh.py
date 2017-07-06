@@ -34,9 +34,11 @@ def connect():
     client.load_system_host_keys()
     client.set_missing_host_key_policy(AutoAddPolicy())
     logger.info("Logging into %s" % os.environ.get('hostname'))
-    client.connect(hostname=os.environ.get('hostname'),
-                   username=os.environ.get('username'),
-                   password=os.environ.get('password'))
+    try:
+        client.connect(hostname=os.environ.get('hostname'), username=os.environ.get('username'), password=os.environ.get('password'))
+    except Exception as e:
+        logger.info("could not connect to " +os.environ.get('hostname')+ ":  %s" % e)
+        raise Exception("Problem connecting : '%s'" % e)
     return client
 
 
