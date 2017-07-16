@@ -18,7 +18,11 @@ class XmlParser:
         root_element = xmltodict.parse(bytes)
 
         if self._xml_path is not None:
-            l = list(Dotdictify(root_element).get(self._xml_path))
+
+            if isinstance(list(Dotdictify(root_element).get(self._xml_path))[0], dict):
+                l = list(Dotdictify(root_element).get(self._xml_path))
+            else:
+                l = [Dotdictify(root_element).get(self._xml_path)]
         else:
             l = [root_element]
         if self._updated_path is not None:
@@ -47,4 +51,4 @@ class XmlRenderer:
 
 def json_to_xml(stream):
     logger.info("converting XML to json")
-    return xmltodict.unparse(json.load(stream)[0], pretty=True, full_document=False).encode()
+    return xmltodict.unparse(json.load(stream)[0], pretty=True, full_document=False).encode('utf-8')
