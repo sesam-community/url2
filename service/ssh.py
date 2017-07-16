@@ -57,16 +57,20 @@ def get_files(connection, path, args):
 
     filetype = path.split(".")[-1]
     stdin, stdout, stderr = connection.exec_command('ls ' + path)
-    for out in stdout.readlines():
-        filenames.append(out)
-    for name in filenames:
-        name = name.replace('\n', '')
-        if name.split(".")[-1] == args.get('type', filetype).lower():
-            if len(filenames)>1:
+    is_folder = connection.exec_command('if [ -d ' + path + ' ] ; then echo true; else echo false; fi')[1].readlines()[0].replace('\n', '')
+    stdin, stdout, stderr = connection.exec_command('ls ' + path)
+    if is_folder == "true":
+        for out in stdout.readlines():
+            filenames.append(out)
+        for name in filenames:
+            name = name.replace('\n', '')
+            if name.split(".")[-1] == args.get('type', filetype).lower():
                 logger.info("Found file: %s" % name)
                 stdin, stdout, stderr = connection.exec_command('cat ' + path + str(name))
-            else :
-                logger.info("Found file: %s" % path)
-                stdin, stdout, stderr = connection.exec_command('cat ' + path)
+                streams.append(stdout)
+    else :
+            logger.info("Found file: %s" % path)
+            stdin, stdout, stderr = connection.exec_command('cat ' + path)
             streams.append(stdout)
+
     return streams
