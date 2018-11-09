@@ -6,8 +6,9 @@ import logger
 from ftp import Ftp
 from ssh import Ssh
 from json_parser import Json
-from json_tools import JsonParser
+from json_tools import JsonParser, JsonRenderer
 from xml_tools import XmlParser, XmlRenderer
+from csv_tools import CsvParser, CsvRenderer
 app = Flask(__name__)
 
 logger = logger.Logger('url2-service')
@@ -35,6 +36,8 @@ def create_parser(args, path):
         return XmlParser(args)
     elif parser.lower() == "json":
         return JsonParser(args)
+    elif parser.lower() == "csv":
+        return CsvParser(args)
     else:
         raise Exception("Unknown parser: '%s" % parser)
 
@@ -45,6 +48,10 @@ def create_renderer(args, path):
     renderer = args.get('type', filetype)
     if renderer.lower() == "xml":
         return XmlRenderer(args)
+    elif renderer.lower() == "json":
+        return JsonRenderer(args)
+    elif renderer.lower() == "csv":
+        return CsvRenderer(args)
     else:
         raise Exception("Unknown renderer: '%s" % renderer)
 
@@ -60,8 +67,13 @@ def get(path):
     for stream in streams:
         l = l + parser.parse(stream)
     session.close()
-    dumps = json.dumps(l)
-    return Response(response=dumps, mimetype='application/json')
+    if isinstance(parser, CsvParser):
+        dumps = l
+        mimetype = 'text/csv'
+    else:
+        dumps = json.dumps(l)
+        mimetype = 'application/json'
+    return Response(response=dumps, mimetype=mimetype)
 
 
 @app.route('/<path:path>', methods=["POST"])

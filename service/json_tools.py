@@ -34,3 +34,9 @@ def filter(l, since):
         if e.get("_updated") > since:
             yield e
 
+class JsonRenderer:
+    def __init__(self, args):
+        pass
+
+    def render(self, stream):
+        return stream.read()
