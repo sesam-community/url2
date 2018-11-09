@@ -6,7 +6,7 @@ import logger
 from ftp import Ftp
 from ssh import Ssh
 from json_parser import Json
-from json_tools import JsonParser
+from json_tools import JsonParser, JsonRenderer
 from xml_tools import XmlParser, XmlRenderer
 from csv_tools import CsvParser, CsvRenderer
 app = Flask(__name__)
@@ -48,6 +48,8 @@ def create_renderer(args, path):
     renderer = args.get('type', filetype)
     if renderer.lower() == "xml":
         return XmlRenderer(args)
+    elif renderer.lower() == "json":
+        return JsonRenderer(args)
     elif renderer.lower() == "csv":
         return CsvRenderer(args)
     else:
